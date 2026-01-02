@@ -1,0 +1,37 @@
+{
+  "name": "aws-whats-new-digest",
+  "version": "1.0.0",
+  "description": "AWS What's New RSSフィードのAI要約付きアーカイブ",
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "collect": "tsx scripts/collect.ts",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "keywords": ["aws", "rss", "digest", "ai", "summary"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "vitepress": "^1.5.0",
+    "rss-parser": "^3.13.0",
+    "openai": "^4.77.0",
+    "dotenv": "^16.4.7",
+    "date-fns": "^4.1.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/node": "^22.10.2",
+    "@vitest/ui": "^2.1.8",
+    "typescript": "^5.7.2",
+    "tsx": "^4.19.2",
+    "vitest": "^2.1.8",
+    "@vitest/coverage-v8": "^2.1.8"
+  }
+}
