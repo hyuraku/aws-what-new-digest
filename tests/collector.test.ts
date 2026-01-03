@@ -74,6 +74,12 @@ describe('extractServiceNames', () => {
     const services = extractServiceNames(categories)
     expect(services).toContain('Lambda')
   })
+
+  it('カンマ区切りで複数カテゴリが入っていてもgeneral:productsのみ抽出', () => {
+    const categories = ['general:products/aws-clean-rooms,marketing:marchitecture/analytics']
+    const services = extractServiceNames(categories)
+    expect(services).toEqual(['Clean Rooms'])
+  })
 })
 
 describe('convertRssItem', () => {
