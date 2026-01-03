@@ -165,13 +165,13 @@ export function parseSummaryResponse(content: string): SummaryResult {
  * 単一の記事を要約
  * @param client - OpenAIクライアント
  * @param item - AWS What's New記事
- * @param model - 使用するモデル（デフォルト: gpt-4o-mini）
+ * @param model - 使用するモデル（デフォルト: gpt-5-mini）
  * @returns SummaryResult
  */
 export async function summarizeItem(
   client: OpenAI,
   item: AWSWhatsNewItem,
-  model = 'gpt-4o-mini',
+  model = 'gpt-5-mini',
 ): Promise<SummaryResult> {
   const userPrompt = buildSummaryPrompt(item)
 
@@ -204,7 +204,7 @@ export async function summarizeItem(
  */
 export async function summarizeItems(
   items: AWSWhatsNewItem[],
-  model = 'gpt-4o-mini',
+  model = 'gpt-5-mini',
   concurrency = 3,
 ): Promise<Map<string, SummaryResult>> {
   const client = createOpenAIClient()

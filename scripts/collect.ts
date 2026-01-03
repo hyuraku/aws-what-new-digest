@@ -8,7 +8,7 @@ import type { AWSWhatsNewItem, MarkdownEntry, SummaryResult } from './types.js'
 
 // 設定
 const DUPLICATE_CHECK_DAYS = Number.parseInt(process.env.DUPLICATE_CHECK_DAYS || '7', 10)
-const AI_MODEL = process.env.AI_MODEL || 'gpt-4o-mini'
+const AI_MODEL = process.env.AI_MODEL || 'gpt-5-mini'
 
 /**
  * AWSWhatsNewItemとSummaryResultからMarkdownEntryを作成
