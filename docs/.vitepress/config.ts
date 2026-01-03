@@ -118,10 +118,20 @@ export default defineConfig({
   description: 'AI要約付きAWS最新情報アーカイブ',
   lang: 'ja',
 
-  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }]],
+  head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
+    ['meta', { name: 'theme-color', content: '#f59e0b' }],
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:title', content: "AWS What's New Digest" }],
+    ['meta', { property: 'og:description', content: 'AI要約付きAWS最新情報アーカイブ' }],
+  ],
 
   themeConfig: {
-    nav: [{ text: 'ホーム', link: '/' }],
+    logo: '/favicon.svg',
+    nav: [
+      { text: 'ホーム', link: '/' },
+      { text: 'AWS公式', link: 'https://aws.amazon.com/new/' },
+    ],
 
     sidebar: {
       '/': await generateSidebar(),
@@ -151,7 +161,7 @@ export default defineConfig({
     },
 
     footer: {
-      message: 'AI要約はOpenAI GPT-4o miniによって生成されています。',
+      message: 'AI要約はOpenAI GPT-5-miniによって生成されています。',
       copyright: `Copyright © ${new Date().getFullYear()}`,
     },
 

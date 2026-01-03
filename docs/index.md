@@ -2,48 +2,114 @@
 layout: home
 
 hero:
-  name: "AWS What's New Digest"
-  text: "AI要約付きAWS最新情報アーカイブ"
-  tagline: AWS What's New RSSフィードの更新情報を、AIによる日本語要約付きで毎日お届けします
+  name: "AWS What's New"
+  text: "Digest"
+  tagline: AWSの最新アップデートを、AIによる日本語要約付きで毎日お届け
   actions:
     - theme: brand
       text: 最新の更新を見る
       link: /
 
 features:
-  - icon: 🤖
+  - icon: ⚡
+    title: リアルタイム収集
+    details: GitHub Actionsで毎日自動実行。AWS What's New RSSフィードから最新情報をキャッチアップ
+  - icon: 🧠
     title: AI要約
-    details: OpenAI GPT-5 miniによる日本語要約で、AWS更新情報を素早く把握できます
-  - icon: 📅
-    title: 日別アーカイブ
-    details: 日付ごとにMarkdownファイルで管理。過去の更新も簡単に検索・閲覧できます
+    details: OpenAI GPTによる構造化された日本語要約。概要・詳細・影響範囲・技術的注意点を網羅
   - icon: 🔍
-    title: 全文検索
-    details: VitePressのローカル検索機能で、キーワードから関連する更新を素早く見つけられます
+    title: 高速検索
+    details: VitePressのローカル検索で過去のアップデートを瞬時に発見。キーワード、サービス名で絞り込み
 ---
 
-## このサイトについて
+<div class="home-content">
 
-AWS What's New Digestは、[AWS What's New](https://aws.amazon.com/new/)の更新情報を自動収集し、AI（OpenAI GPT-4o mini）による日本語要約を付けて公開するサービスです。
+## システム概要
 
-### 特徴
-
-- **毎日自動更新**: GitHub Actionsにより毎日自動でRSSフィードを収集・処理
-- **AI要約**: 各更新について概要、詳細、影響範囲、技術的注意点を日本語で解説
-- **完全無料**: GitHub Pagesでホスティング、ソースコードも公開
-- **検索可能**: VitePressの検索機能で過去の更新を検索可能
+AWS What's New Digestは、AWSの公式What's Newフィードを自動収集し、**AIによる構造化された日本語要約**を生成するシステムです。
 
 ### 要約の構成
 
-各AWS What's Newエントリについて、以下の情報を提供します：
+各エントリについて、以下の4つの観点から解説します：
 
-1. **概要** - 1-2文で変更内容を簡潔に説明
-2. **変更内容・新機能の詳細** - 技術的な詳細説明
-3. **影響範囲・利用シーン** - どのようなユーザーに影響があるか
-4. **技術的な注意点** - 移行時の考慮事項や制限事項
+| セクション | 内容 |
+|-----------|------|
+| **概要** | 1-2文で変更内容を簡潔に説明 |
+| **変更内容・新機能の詳細** | 技術的な詳細説明 |
+| **影響範囲・利用シーン** | どのようなユーザーに影響があるか |
+| **技術的な注意点** | 移行時の考慮事項や制限事項 |
 
-### 免責事項
+---
 
-- 本サイトの情報はAIによる要約であり、正確性を保証するものではありません
-- 最新かつ正確な情報は、必ず[AWS公式サイト](https://aws.amazon.com/new/)でご確認ください
-- 本サイトはAWSの公式サービスではありません
+## 免責事項
+
+::: warning 注意
+本サイトの情報はAIによる要約であり、正確性を保証するものではありません。最新かつ正確な情報は、必ず[AWS公式サイト](https://aws.amazon.com/new/)でご確認ください。
+:::
+
+本サイトはAWSの公式サービスではありません。
+
+</div>
+
+<style>
+.home-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+.home-content h2 {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  margin-top: 48px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--aws-amber-500, #f59e0b);
+}
+
+.home-content h3 {
+  font-family: var(--font-mono);
+  font-size: 1.125rem;
+  color: var(--aws-amber-500, #f59e0b);
+  margin-top: 32px;
+}
+
+.home-content table {
+  width: 100%;
+  margin: 24px 0;
+  border-collapse: collapse;
+}
+
+.home-content th,
+.home-content td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.home-content th {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  background: var(--vp-c-bg-alt);
+}
+
+.home-content pre {
+  background: var(--vp-c-bg-alt);
+  padding: 16px 20px;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  overflow-x: auto;
+}
+
+.home-content .warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-left: 4px solid var(--aws-amber-500, #f59e0b);
+  padding: 16px 20px;
+  border-radius: 0 8px 8px 0;
+  margin: 24px 0;
+}
+
+.dark .home-content .warning {
+  background: rgba(245, 158, 11, 0.15);
+}
+</style>
