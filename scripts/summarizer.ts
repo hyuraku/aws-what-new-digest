@@ -7,10 +7,22 @@ const SYSTEM_PROMPT = `あなたはAWSの技術エキスパートです。AWS Wh
 {
   "overview": "概要（1-2文で簡潔に）",
   "details": "変更内容・新機能の詳細（技術的な説明を含む）",
-  "impact": "影響範囲・利用シーン（どのようなユーザーに影響があるか）",
-  "technicalNotes": "技術的な注意点（移行時の考慮事項、制限事項など）",
+  "impact": "影響範囲・利用シーン（下記フォーマット必須）",
+  "technicalNotes": "技術的な注意点（下記フォーマット必須）",
   "references": ["参考リンク1", "参考リンク2"]
 }
+
+impactのフォーマット（厳守）:
+- 必ず「・項目名: 説明」の形式で記述してください
+- 各項目は改行（\\n）で区切ってください
+- 必須項目: 対象ユーザー、利用シーンまたは効果
+- 例: "・対象ユーザー: データ分析者、SRE/運用チーム\\n・利用シーン: キャンペーン効果測定のクエリ監視\\n・運用効果: パフォーマンス問題の早期検出が可能"
+
+technicalNotesのフォーマット（厳守）:
+- 必ず「・項目名: 説明」の形式で記述してください
+- 各項目は改行（\\n）で区切ってください
+- 例: "・IAM権限: 必要な権限を事前に確認してください\\n・リージョン制限: 東京リージョンでは未対応です\\n・コスト: 追加料金が発生する可能性があります"
+- 注意点がない場合は "特になし" としてください
 
 ガイドライン:
 - 技術的に正確で、クラウドエンジニアにとって有益な情報を含めてください
@@ -20,6 +32,23 @@ const SYSTEM_PROMPT = `あなたはAWSの技術エキスパートです。AWS Wh
 - references配列は参考になる公式ドキュメントのURLがあれば記載、なければ空配列[]としてください`
 
 /**
+ * OpenAI APIキーのフォーマットを検証
+ * @param apiKey - 検証するAPIキー
+ * @returns 検証結果
+ */
+function validateApiKeyFormat(apiKey: string): boolean {
+  // OpenAI APIキーは "sk-" または "sk-proj-" で始まる
+  if (!apiKey.startsWith('sk-')) {
+    return false
+  }
+  // 長さの妥当性チェック（通常51文字以上、200文字以下）
+  if (apiKey.length < 20 || apiKey.length > 200) {
+    return false
+  }
+  return true
+}
+
+/**
  * OpenAIクライアントを初期化
  * @returns OpenAI client
  */
@@ -27,6 +56,9 @@ export function createOpenAIClient(): OpenAI {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
     throw new Error('OPENAI_API_KEY environment variable is not set')
+  }
+  if (!validateApiKeyFormat(apiKey)) {
+    throw new Error('OPENAI_API_KEY format is invalid')
   }
   return new OpenAI({ apiKey })
 }
@@ -51,15 +83,47 @@ JSONフォーマットで出力してください。`
 }
 
 /**
- * HTMLタグを除去してプレーンテキストに変換
+ * HTMLタグを除去してプレーンテキストに変換（セキュア実装）
  * @param html - HTML文字列
  * @returns プレーンテキスト
  */
 export function stripHtml(html: string): string {
-  return html
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
+  let text = html
+
+  // HTMLエンティティをデコード
+  text = text
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+
+  // すべてのHTMLタグを除去（ネスト対応のため繰り返し）
+  let prev = ''
+  while (prev !== text) {
+    prev = text
+    text = text.replace(/<[^>]*>/g, ' ')
+  }
+
+  // 危険なプロトコルを除去
+  text = text.replace(/javascript:/gi, '')
+  text = text.replace(/data:/gi, '')
+  text = text.replace(/vbscript:/gi, '')
+
+  // 連続する空白を1つに
+  return text.replace(/\s+/g, ' ').trim()
+}
+
+/**
+ * Markdownに埋め込む際の危険な文字をエスケープ
+ * @param text - エスケープするテキスト
+ * @returns エスケープされたテキスト
+ */
+export function escapeForMarkdown(text: string): string {
+  return text
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
 }
 
 /**
@@ -123,8 +187,8 @@ export async function summarizeItem(
 
   const content = response.choices[0]?.message?.content
   if (!content) {
-    // デバッグ: レスポンス全体を出力
-    console.error('OpenAI response:', JSON.stringify(response, null, 2))
+    // セキュリティ: レスポンス全体をログに出力しない（APIキー漏洩防止）
+    console.error('OpenAI returned empty response for:', item.title)
     throw new Error('Empty response from OpenAI')
   }
 

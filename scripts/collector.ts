@@ -3,6 +3,49 @@ import type { AWSWhatsNewItem } from './types.js'
 
 const RSS_URL = 'https://aws.amazon.com/about-aws/whats-new/recent/feed/'
 
+// SSRF対策: 許可されたドメインのホワイトリスト
+const ALLOWED_DOMAINS = ['aws.amazon.com']
+
+/**
+ * RSSフィードURLのセキュリティ検証（SSRF対策）
+ * @param url - 検証するURL
+ * @throws URLが不正な場合
+ */
+function validateRssUrl(url: string): void {
+  let parsedUrl: URL
+  try {
+    parsedUrl = new URL(url)
+  } catch {
+    throw new Error(`Invalid URL format: ${url}`)
+  }
+
+  // HTTPSのみ許可
+  if (parsedUrl.protocol !== 'https:') {
+    throw new Error('Only HTTPS URLs are allowed')
+  }
+
+  const hostname = parsedUrl.hostname.toLowerCase()
+
+  // 許可されたドメインのみ
+  const isAllowed = ALLOWED_DOMAINS.some(
+    (domain) => hostname === domain || hostname.endsWith(`.${domain}`),
+  )
+  if (!isAllowed) {
+    throw new Error(`Domain ${hostname} is not allowed`)
+  }
+
+  // IPアドレスを拒否
+  const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/
+  if (ipPattern.test(hostname)) {
+    throw new Error('IP addresses are not allowed')
+  }
+
+  // localhostやプライベートドメインを拒否
+  if (hostname === 'localhost' || hostname.endsWith('.local') || hostname.endsWith('.internal')) {
+    throw new Error('Local/internal domains are not allowed')
+  }
+}
+
 // AWSサービス名のマッピング（プロダクトID → 表示名）
 const SERVICE_NAME_MAP: Record<string, string> = {
   ec2: 'EC2',
@@ -115,9 +158,10 @@ export function extractServiceNames(categories: string[]): string[] {
 
   for (const category of categories) {
     // "general:products/ec2" → "ec2" を抽出
-    const match = category.match(/general:products\/(.+)/)
+    // RSSの<category>がカンマ区切りで複数値を含むケースがあるため、カンマまでで切る
+    const match = category.match(/general:products\/([^,]+)/)
     if (match) {
-      const productId = match[1].toLowerCase()
+      const productId = match[1].trim().toLowerCase()
       const serviceName = SERVICE_NAME_MAP[productId]
       if (serviceName) {
         serviceNames.add(serviceName)
@@ -197,7 +241,13 @@ export function convertRssItem(rssItem: {
  * @returns AWSWhatsNewItem[]
  */
 export async function fetchRssFeed(feedUrl: string = RSS_URL): Promise<AWSWhatsNewItem[]> {
-  const parser = new Parser()
+  // SSRF対策: URLを検証
+  validateRssUrl(feedUrl)
+
+  const parser = new Parser({
+    timeout: 30000, // 30秒のタイムアウト
+    maxRedirects: 3, // リダイレクト回数を制限
+  })
   const feed = await parser.parseURL(feedUrl)
 
   const items: AWSWhatsNewItem[] = []

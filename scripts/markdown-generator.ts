@@ -29,6 +29,33 @@ export function formatDateJapanese(date: Date): string {
 }
 
 /**
+ * テキストをMarkdownリスト形式に変換
+ * AIが出力する「・項目名: 説明\n・項目名: 説明」形式を
+ * 「- **項目名**: 説明」のMarkdownリストに変換する
+ * @param text - 変換対象のテキスト
+ * @returns Markdown形式のリスト
+ */
+function formatAsMarkdownList(text: string): string {
+  if (!text || text === '特になし') {
+    return '特になし'
+  }
+
+  // リテラルな \n を実際の改行に変換
+  let formatted = text.replace(/\\n/g, '\n')
+
+  // 「・項目名:」形式を「- **項目名**:」形式に変換
+  formatted = formatted.replace(/^・([^:：]+)[:：]\s*/gm, '- **$1**: ')
+
+  // 行頭が「・」で始まる場合（コロンなし）も箇条書きに変換
+  formatted = formatted.replace(/^・/gm, '- ')
+
+  // 連続する空行を1つに
+  formatted = formatted.replace(/\n{3,}/g, '\n\n')
+
+  return formatted.trim()
+}
+
+/**
  * 単一の記事エントリをMarkdown形式に変換
  * @param entry - Markdownエントリ
  * @returns Markdown形式の文字列
@@ -61,13 +88,13 @@ function formatEntry(entry: MarkdownEntry): string {
   // 影響範囲・利用シーン
   lines.push('### 影響範囲・利用シーン')
   lines.push('')
-  lines.push(entry.summary.impact)
+  lines.push(formatAsMarkdownList(entry.summary.impact))
   lines.push('')
 
   // 技術的な注意点
   lines.push('### 技術的な注意点')
   lines.push('')
-  lines.push(entry.summary.technicalNotes || '特になし')
+  lines.push(formatAsMarkdownList(entry.summary.technicalNotes || ''))
   lines.push('')
 
   // 参考情報（存在する場合のみ）
