@@ -2,6 +2,8 @@ import { readdir, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { type DefaultTheme, defineConfig } from 'vitepress'
 
+const BASE_PATH = '/aws-what-new-digest/'
+
 /**
  * 最新の日付ファイルのパスを取得
  * @returns 最新の日付パス（例: /2026/01/02）またはnull
@@ -117,10 +119,10 @@ export default defineConfig({
   title: "AWS What's New Digest",
   description: 'AI要約付きAWS最新情報アーカイブ',
   lang: 'ja',
-  base: '/aws-what-new-digest/',
+  base: BASE_PATH,
 
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: `${BASE_PATH}favicon.svg` }],
     ['meta', { name: 'theme-color', content: '#f59e0b' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:title', content: "AWS What's New Digest" }],
