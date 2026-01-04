@@ -32,7 +32,9 @@ async function getLatestDatePath(): Promise<string | null> {
 
         // 日ファイルを取得（新しい順）
         const dayFiles = await readdir(monthPath)
-        const days = dayFiles.filter((f) => /^\d{2}\.md$/.test(f)).sort((a, b) => b.localeCompare(a))
+        const days = dayFiles
+          .filter((f) => /^\d{2}\.md$/.test(f))
+          .sort((a, b) => b.localeCompare(a))
 
         if (days.length > 0) {
           const latestDay = days[0].replace('.md', '')

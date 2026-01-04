@@ -15,13 +15,7 @@
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
-  "keywords": [
-    "aws",
-    "rss",
-    "digest",
-    "ai",
-    "summary"
-  ],
+  "keywords": ["aws", "rss", "digest", "ai", "summary"],
   "author": "",
   "license": "MIT",
   "dependencies": {
