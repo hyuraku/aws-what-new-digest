@@ -117,6 +117,7 @@ export default defineConfig({
   title: "AWS What's New Digest",
   description: 'AI要約付きAWS最新情報アーカイブ',
   lang: 'ja',
+  base: '/aws-what-new-digest/',
 
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
