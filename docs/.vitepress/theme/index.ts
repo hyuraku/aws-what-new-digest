@@ -1,6 +1,6 @@
 // Custom VitePress theme extending the default theme
-import DefaultTheme from 'vitepress/theme'
 import type { Theme } from 'vitepress'
+import DefaultTheme from 'vitepress/theme'
 import ArticleCard from './ArticleCard.vue'
 import './custom.css'
 

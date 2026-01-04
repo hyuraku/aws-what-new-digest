@@ -121,9 +121,7 @@ export function stripHtml(html: string): string {
  * @returns エスケープされたテキスト
  */
 export function escapeForMarkdown(text: string): string {
-  return text
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
+  return text.replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
 /**
