@@ -4,17 +4,16 @@ on:
   schedule:
     # 毎日09:00 JST（00:00 UTC）に実行
     - cron: '0 0 * * *'
-  workflow_dispatch: # 手動実行も可能
+  workflow_dispatch:
 
 permissions:
   contents: write
-  # 明示的に他の権限を無効化
+  pull-requests: write
   actions: none
   checks: none
   deployments: none
   issues: none
   packages: none
-  pull-requests: none
   repository-projects: none
   security-events: none
   statuses: none
@@ -39,7 +38,7 @@ jobs:
         run: npm ci
 
       - name: Security audit
-        run: npm audit --audit-level=high || true  # high以上の脆弱性があれば警告
+        run: npm audit --audit-level=high || true
 
       - name: Run collector
         env:
@@ -58,19 +57,36 @@ jobs:
             echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Commit and push
+      - name: Create branch and commit
         if: steps.check_changes.outputs.has_changes == 'true'
+        id: create_branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          BRANCH_NAME="auto-update/$(date +'%Y-%m-%d-%H%M%S')"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH_NAME"
+          git commit -m "feat: add AWS What's New update for $(date +'%Y-%m-%d')"
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
-          git commit -m "Update: $(date +'%Y-%m-%d')"
-          git push origin HEAD:${GITHUB_REF}
+          git push origin "$BRANCH_NAME"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
 
-      - name: Trigger deploy
+      - name: Create Pull Request
+        if: steps.check_changes.outputs.has_changes == 'true'
+        id: create_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_URL=$(gh pr create \
+            --title "Auto: AWS What's New $(date +'%Y-%m-%d')" \
+            --body "Automated daily AWS What's New digest update." \
+            --base main \
+            --head "${{ steps.create_branch.outputs.branch_name }}")
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+
+      - name: Enable auto-merge
         if: steps.check_changes.outputs.has_changes == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh api repos/${{ github.repository }}/dispatches -f event_type=deploy-site
+        run: gh pr merge "${{ steps.create_pr.outputs.pr_url }}" --auto --squash
