@@ -90,3 +90,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr merge "${{ steps.create_pr.outputs.pr_url }}" --squash --delete-branch
+
+      - name: Trigger Deploy Workflow
+        if: steps.check_changes.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/dispatches \
+            -X POST \
+            -f event_type=deploy-site
