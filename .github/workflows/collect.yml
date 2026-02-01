@@ -45,6 +45,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           DUPLICATE_CHECK_DAYS: '7'
           NODE_ENV: production
+          TZ: Asia/Tokyo
         run: npm run collect
 
       - name: Check for changes
