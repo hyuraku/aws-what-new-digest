@@ -1,9 +1,18 @@
 import 'dotenv/config'
+import { join } from 'node:path'
 import { format } from 'date-fns'
 import { collectRecentItems } from './collector.js'
 import { getNewItemsOnly } from './duplicate-checker.js'
-import { dailyFileExists, saveMarkdownFile } from './markdown-generator.js'
+import {
+  appendToMarkdownFile,
+  dailyFileExists,
+  extractEntriesFromMarkdown,
+  generateDailyFilePath,
+  readMarkdownFile,
+  saveMarkdownFile,
+} from './markdown-generator.js'
 import { summarizeItems } from './summarizer.js'
+import { toJST } from './timezone.js'
 import type { AWSWhatsNewItem, MarkdownEntry, SummaryResult } from './types.js'
 
 // 設定
@@ -16,7 +25,7 @@ const AI_MODEL = process.env.AI_MODEL || 'gpt-5-mini'
 function createMarkdownEntry(item: AWSWhatsNewItem, summary: SummaryResult): MarkdownEntry {
   return {
     title: item.title,
-    date: format(item.pubDate, 'yyyy-MM-dd'),
+    date: format(toJST(item.pubDate), 'yyyy-MM-dd'),
     link: item.link,
     categories: item.categories,
     guid: item.guid,
@@ -25,13 +34,13 @@ function createMarkdownEntry(item: AWSWhatsNewItem, summary: SummaryResult): Mar
 }
 
 /**
- * 日付ごとに記事をグループ化
+ * 日付ごとに記事をグループ化（JST基準）
  */
 function groupItemsByDate(items: AWSWhatsNewItem[]): Map<string, AWSWhatsNewItem[]> {
   const groups = new Map<string, AWSWhatsNewItem[]>()
 
   for (const item of items) {
-    const dateKey = format(item.pubDate, 'yyyy-MM-dd')
+    const dateKey = format(toJST(item.pubDate), 'yyyy-MM-dd')
     const existing = groups.get(dateKey) || []
     existing.push(item)
     groups.set(dateKey, existing)
@@ -113,7 +122,27 @@ async function main(): Promise<void> {
 
       // 日付文字列からDateオブジェクトを作成
       const date = new Date(dateKey)
-      await saveMarkdownFile(date, entries)
+
+      // 既存ファイルがあれば読み込んでエントリを抽出し、追記する
+      const filePath = join('.', generateDailyFilePath(date))
+      const existingContent = await readMarkdownFile(filePath)
+
+      if (existingContent) {
+        const existingEntries = extractEntriesFromMarkdown(existingContent)
+        // 重複を除去（リンクで比較）
+        const existingLinks = new Set(existingEntries.map((e) => e.link.toLowerCase()))
+        const uniqueNewEntries = entries.filter((e) => !existingLinks.has(e.link.toLowerCase()))
+
+        if (uniqueNewEntries.length > 0) {
+          await appendToMarkdownFile(date, uniqueNewEntries, existingEntries)
+          console.log(`Appended ${uniqueNewEntries.length} entries to ${filePath}`)
+        } else {
+          console.log(`No new entries to add to ${filePath}`)
+        }
+      } else {
+        await saveMarkdownFile(date, entries)
+        console.log(`Created ${filePath} with ${entries.length} entries`)
+      }
     }
 
     console.log('')

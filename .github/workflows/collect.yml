@@ -2,8 +2,8 @@ name: Collect AWS What's New
 
 on:
   schedule:
-    # 毎日09:00 JST（00:00 UTC）に実行
-    - cron: '0 0 * * *'
+    # 毎日10:00 JST（01:00 UTC）に実行
+    - cron: '0 1 * * *'
   workflow_dispatch:
 
 permissions:

@@ -3,29 +3,28 @@ import { dirname, join } from 'node:path'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import type { MarkdownEntry } from './types.js'
+import { toJST } from './timezone.js'
 
 /**
- * 日別ファイルパスを生成
+ * 日別ファイルパスを生成（JST基準）
  * @param date - 日付
  * @returns ファイルパス（例: docs/2026/01/15.md）
  */
 export function generateDailyFilePath(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
+  const jstDate = toJST(date)
+  const year = format(jstDate, 'yyyy')
+  const month = format(jstDate, 'MM')
+  const day = format(jstDate, 'dd')
   return `docs/${year}/${month}/${day}.md`
 }
 
 /**
- * 日付を日本語形式でフォーマット
+ * 日付を日本語形式でフォーマット（JST基準）
  * @param date - 日付
  * @returns フォーマットされた日付文字列（例: 2026年01月15日）
  */
 export function formatDateJapanese(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}年${month}月${day}日`
+  return format(toJST(date), 'yyyy年MM月dd日')
 }
 
 /**
@@ -213,4 +212,87 @@ export async function appendToMarkdownFile(
   const allEntries = [...newEntries, ...existingEntries]
 
   return saveMarkdownFile(date, allEntries, basePath)
+}
+
+/**
+ * Markdownコンテンツから既存のエントリを抽出
+ * @param content - Markdownファイルの内容
+ * @returns 抽出されたエントリの配列
+ */
+export function extractEntriesFromMarkdown(content: string): MarkdownEntry[] {
+  const entries: MarkdownEntry[] = []
+
+  // 「更新なし」の場合は空配列を返す
+  if (content.includes('本日はAWS What\'s Newの更新はありませんでした')) {
+    return entries
+  }
+
+  // "## [カテゴリ] タイトル" で記事を分割
+  // 各記事は "---" または次の "## [" で区切られる
+  const articlePattern = /## \[([^\]]+)\] (.+?)(?=\n---\n|\n## \[|$)/gs
+
+  for (const match of content.matchAll(articlePattern)) {
+    const categoriesStr = match[1]
+    const titleAndContent = match[2]
+
+    // タイトルは最初の行
+    const titleMatch = titleAndContent.match(/^([^\n]+)/)
+    if (!titleMatch) continue
+    const title = titleMatch[1].trim()
+
+    const articleContent = match[0]
+
+    // 各フィールドを抽出
+    const linkMatch = articleContent.match(/\*\*リンク\*\*:\s*(https?:\/\/[^\s\n]+)/)
+    const dateMatch = articleContent.match(/\*\*公開日\*\*:\s*(\d{4}-\d{2}-\d{2})/)
+
+    if (!linkMatch || !dateMatch) continue
+
+    const link = linkMatch[1]
+    const date = dateMatch[1]
+    const categories = categoriesStr.split(', ').map((c) => c.trim())
+
+    // 概要を抽出
+    const overviewMatch = articleContent.match(/### 概要\n\n([\s\S]*?)(?=\n### |$)/)
+    const overview = overviewMatch ? overviewMatch[1].trim() : ''
+
+    // 変更内容・新機能の詳細を抽出
+    const detailsMatch = articleContent.match(/### 変更内容・新機能の詳細\n\n([\s\S]*?)(?=\n### |$)/)
+    const details = detailsMatch ? detailsMatch[1].trim() : ''
+
+    // 影響範囲・利用シーンを抽出
+    const impactMatch = articleContent.match(/### 影響範囲・利用シーン\n\n([\s\S]*?)(?=\n### |$)/)
+    const impact = impactMatch ? impactMatch[1].trim() : ''
+
+    // 技術的な注意点を抽出
+    const notesMatch = articleContent.match(/### 技術的な注意点\n\n([\s\S]*?)(?=\n### |$)/)
+    const technicalNotes = notesMatch ? notesMatch[1].trim() : ''
+
+    // 参考情報を抽出
+    const refsMatch = articleContent.match(/### 参考情報\n\n([\s\S]*?)(?=\n---|$)/)
+    const references = refsMatch
+      ? refsMatch[1]
+          .trim()
+          .split('\n')
+          .filter((l) => l.startsWith('- '))
+          .map((l) => l.slice(2))
+      : []
+
+    entries.push({
+      title,
+      date,
+      link,
+      categories,
+      guid: link, // GUID が保存されていないのでリンクを使用
+      summary: {
+        overview,
+        details,
+        impact,
+        technicalNotes,
+        references,
+      },
+    })
+  }
+
+  return entries
 }
