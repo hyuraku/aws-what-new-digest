@@ -67,7 +67,7 @@ function formatEntry(entry: MarkdownEntry): string {
   lines.push('')
 
   // メタデータ
-  lines.push(`- **公開日**: ${entry.date}`)
+  lines.push(`- **公開日**: ${entry.date} (JST)`)
   lines.push(`- **カテゴリ**: ${entry.categories.join(', ')}`)
   lines.push(`- **リンク**: ${entry.link}`)
   lines.push('')
