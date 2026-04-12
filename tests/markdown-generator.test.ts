@@ -125,6 +125,37 @@ describe('generateMarkdownContent', () => {
     expect(separatorCount).toBe(1) // 2記事間に1つの区切り線
   })
 
+  it('HTMLタグ風のテキストがエスケープされる', () => {
+    const date = new Date('2026-01-15T12:00:00Z')
+    const entries: MarkdownEntry[] = [
+      {
+        title: 'Article with angle brackets',
+        date: '2026-01-15',
+        link: 'https://example.com/article',
+        categories: ['RDS'],
+        guid: 'article-escape',
+        summary: {
+          overview: 'CLI例: aws rds copy-db-snapshot --source <arn>',
+          details: '/proc/<pid>/fd でファイルディスクリプタを確認できます。',
+          impact: '・対象ユーザー: <admin>ロールを持つユーザー',
+          technicalNotes: '・コマンド例: aws s3 cp <source> <dest>',
+          references: [],
+        },
+      },
+    ]
+
+    const content = generateMarkdownContent(date, entries)
+
+    // <arn>, <pid> 等がエスケープされていることを確認
+    expect(content).not.toContain('<arn>')
+    expect(content).not.toContain('<pid>')
+    expect(content).not.toContain('<admin>')
+    expect(content).not.toContain('<source>')
+    expect(content).not.toContain('<dest>')
+    expect(content).toContain('&lt;arn&gt;')
+    expect(content).toContain('&lt;pid&gt;')
+  })
+
   it('参考リンクがある場合は表示する', () => {
     const date = new Date('2026-01-15T12:00:00Z')
     const entries: MarkdownEntry[] = [

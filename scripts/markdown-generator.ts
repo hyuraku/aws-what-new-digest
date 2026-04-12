@@ -3,6 +3,7 @@ import { dirname, join } from 'node:path'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import type { MarkdownEntry } from './types.js'
+import { escapeForMarkdown } from './summarizer.js'
 import { toJST } from './timezone.js'
 
 /**
@@ -75,25 +76,25 @@ function formatEntry(entry: MarkdownEntry): string {
   // 概要
   lines.push('### 概要')
   lines.push('')
-  lines.push(entry.summary.overview)
+  lines.push(escapeForMarkdown(entry.summary.overview))
   lines.push('')
 
   // 変更内容・新機能の詳細
   lines.push('### 変更内容・新機能の詳細')
   lines.push('')
-  lines.push(entry.summary.details)
+  lines.push(escapeForMarkdown(entry.summary.details))
   lines.push('')
 
   // 影響範囲・利用シーン
   lines.push('### 影響範囲・利用シーン')
   lines.push('')
-  lines.push(formatAsMarkdownList(entry.summary.impact))
+  lines.push(formatAsMarkdownList(escapeForMarkdown(entry.summary.impact)))
   lines.push('')
 
   // 技術的な注意点
   lines.push('### 技術的な注意点')
   lines.push('')
-  lines.push(formatAsMarkdownList(entry.summary.technicalNotes || ''))
+  lines.push(formatAsMarkdownList(escapeForMarkdown(entry.summary.technicalNotes || '')))
   lines.push('')
 
   // 参考情報（存在する場合のみ）
