@@ -1,4 +1,4 @@
-import { readdir, stat } from 'node:fs/promises'
+import { readdir, readFile, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { type DefaultTheme, defineConfig } from 'vitepress'
 
@@ -47,6 +47,29 @@ async function getLatestDatePath(): Promise<string | null> {
   }
 
   return null
+}
+
+/**
+ * docs/services/manifest.json からサービス別サイドバーを生成
+ */
+async function generateServicesSidebar(): Promise<DefaultTheme.SidebarItem[]> {
+  const manifestPath = join(__dirname, '..', 'services', 'manifest.json')
+  try {
+    const raw = await readFile(manifestPath, 'utf-8')
+    const manifest = JSON.parse(raw) as Array<{ slug: string; display: string; count: number }>
+    const items: DefaultTheme.SidebarItem[] = manifest.map((m) => ({
+      text: `${m.display} (${m.count})`,
+      link: `/services/${m.slug}`,
+    }))
+    return [
+      {
+        text: 'サービス一覧',
+        items: [{ text: 'すべて', link: '/services/' }, ...items],
+      },
+    ]
+  } catch {
+    return []
+  }
 }
 
 /**
@@ -135,10 +158,12 @@ export default defineConfig({
     logo: '/favicon.svg',
     nav: [
       { text: 'ホーム', link: '/' },
+      { text: 'サービス別', link: '/services/' },
       { text: 'AWS公式', link: 'https://aws.amazon.com/new/' },
     ],
 
     sidebar: {
+      '/services/': await generateServicesSidebar(),
       '/': await generateSidebar(),
     },
 

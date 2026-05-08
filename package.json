@@ -11,8 +11,9 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "collect": "tsx scripts/collect.ts",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
+    "docs:services": "tsx scripts/generate-service-pages.ts",
+    "docs:dev": "npm run docs:services && vitepress dev docs",
+    "docs:build": "npm run docs:services && vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
   "keywords": [
