@@ -39,7 +39,7 @@
     "@vitest/coverage-v8": "^4.1.8",
     "@vitest/ui": "^4.0.16",
     "tsx": "^4.22.4",
-    "typescript": "^5.7.2",
+    "typescript": "^6.0.3",
     "vitest": "^4.0.16"
   },
   "overrides": {
