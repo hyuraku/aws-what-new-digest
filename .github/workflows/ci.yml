@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# デフォルトは読み取りのみ。書き込みが必要なジョブで個別に昇格する（最小権限）
+permissions:
+  contents: read
+
+# 同一ブランチの古い実行はキャンセルしてランナーを節約
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # 全PR共通の品質ゲート。依存バンプがビルド・テスト・型・lintを壊さないか検証する。
+  # auto-merge はこのジョブの成功を前提（needs）にしているため、ここが赤ければ自動マージは走らない。
+  quality:
+    name: Quality (typecheck, lint, test, build)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npx vitest run
+
+      - name: Build docs (VitePress)
+        run: npm run docs:build
+
+  # Dependabot の PR だけを対象に、quality 通過後に条件付きで自動マージする。
+  # ブランチ保護を使わず needs で順序を保証しているので、毎日の collect.yml の自動マージには影響しない。
+  dependabot-auto-merge:
+    name: Dependabot auto-merge
+    needs: quality
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 自動マージ対象（方針: patch は全依存 / dev 依存は minor も）:
+      #   1. dev-dependencies グループの PR（設定上 dev の minor+patch のみ含む）
+      #   2. あらゆる依存の patch 更新
+      #   3. dev 依存（direct:development）の minor 更新
+      # 本番依存の minor/major と dev 依存の major はこの条件に該当せず、人間レビューに回る。
+      - name: Squash-merge eligible updates
+        if: >
+          steps.metadata.outputs.dependency-group == 'dev-dependencies' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+          (steps.metadata.outputs.dependency-type == 'direct:development' &&
+           steps.metadata.outputs.update-type == 'version-update:semver-minor')
+        run: gh pr merge --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

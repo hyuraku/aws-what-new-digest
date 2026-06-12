@@ -105,7 +105,7 @@ async function generateSidebar(): Promise<DefaultTheme.SidebarItem[]> {
         if (!monthStat.isDirectory()) continue
 
         const monthItem: DefaultTheme.SidebarItem = {
-          text: `${Number.parseInt(month)}月`,
+          text: `${Number.parseInt(month, 10)}月`,
           collapsed: true,
           items: [],
         }
@@ -119,7 +119,7 @@ async function generateSidebar(): Promise<DefaultTheme.SidebarItem[]> {
         for (const day of days) {
           const dayNum = day.replace('.md', '')
           monthItem.items!.push({
-            text: `${Number.parseInt(dayNum)}日`,
+            text: `${Number.parseInt(dayNum, 10)}日`,
             link: `/${year}/${month}/${dayNum}`,
           })
         }

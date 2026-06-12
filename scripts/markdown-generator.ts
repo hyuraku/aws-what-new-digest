@@ -2,9 +2,9 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import type { MarkdownEntry } from './types.js'
 import { escapeForMarkdown } from './summarizer.js'
 import { toJST } from './timezone.js'
+import type { MarkdownEntry } from './types.js'
 
 /**
  * 日別ファイルパスを生成（JST基準）
@@ -224,7 +224,7 @@ export function extractEntriesFromMarkdown(content: string): MarkdownEntry[] {
   const entries: MarkdownEntry[] = []
 
   // 「更新なし」の場合は空配列を返す
-  if (content.includes('本日はAWS What\'s Newの更新はありませんでした')) {
+  if (content.includes("本日はAWS What's Newの更新はありませんでした")) {
     return entries
   }
 
@@ -258,7 +258,9 @@ export function extractEntriesFromMarkdown(content: string): MarkdownEntry[] {
     const overview = overviewMatch ? overviewMatch[1].trim() : ''
 
     // 変更内容・新機能の詳細を抽出
-    const detailsMatch = articleContent.match(/### 変更内容・新機能の詳細\n\n([\s\S]*?)(?=\n### |$)/)
+    const detailsMatch = articleContent.match(
+      /### 変更内容・新機能の詳細\n\n([\s\S]*?)(?=\n### |$)/,
+    )
     const details = detailsMatch ? detailsMatch[1].trim() : ''
 
     // 影響範囲・利用シーンを抽出

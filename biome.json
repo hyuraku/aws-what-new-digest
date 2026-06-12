@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.11/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["node_modules", "dist", "docs/.vitepress/dist", "coverage"]
+    "includes": ["**", "!**/node_modules", "!**/dist", "!**/docs/.vitepress/dist", "!**/coverage"]
   },
   "formatter": {
     "enabled": true,
@@ -21,10 +21,9 @@
       "recommended": true,
       "complexity": {
         "noExtraBooleanCast": "error",
-        "noMultipleSpacesInRegularExpressionLiterals": "error",
         "noUselessCatch": "error",
         "noUselessTypeConstraint": "error",
-        "noWith": "error"
+        "noAdjacentSpacesInRegex": "error"
       },
       "correctness": {
         "noUnusedVariables": "warn",
@@ -36,7 +35,8 @@
       },
       "suspicious": {
         "noExplicitAny": "warn",
-        "noArrayIndexKey": "warn"
+        "noArrayIndexKey": "warn",
+        "noWith": "error"
       }
     }
   },
@@ -45,5 +45,20 @@
       "quoteStyle": "single",
       "semicolons": "asNeeded"
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.css"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noImportantStyles": "off"
+          },
+          "style": {
+            "noDescendingSpecificity": "off"
+          }
+        }
+      }
+    }
+  ]
 }

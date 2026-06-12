@@ -4,16 +4,16 @@
  * 既存の docs/YYYY/MM/DD.md を全件スキャンし、カテゴリ別に集約して
  * docs/services/{slug}.md を出力する。VitePress の build 前に実行する。
  */
-import { readdir, stat, mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, stat, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { extractEntriesFromMarkdown, readMarkdownFile } from './markdown-generator.js'
 import {
-  type NormalizedCategory,
-  MIN_ARTICLES_FOR_PAGE,
   extractOneLineSummary,
+  MIN_ARTICLES_FOR_PAGE,
+  type NormalizedCategory,
   normalizeCategory,
   toSlug,
 } from './category-normalizer.js'
+import { extractEntriesFromMarkdown, readMarkdownFile } from './markdown-generator.js'
 
 interface ServiceArticle {
   date: string // YYYY-MM-DD
@@ -177,9 +177,7 @@ async function main() {
   const buckets = await buildServiceBuckets(DOCS_DIR)
 
   // 件数閾値でフィルタ
-  const eligible = [...buckets.values()].filter(
-    (b) => b.articles.length >= MIN_ARTICLES_FOR_PAGE,
-  )
+  const eligible = [...buckets.values()].filter((b) => b.articles.length >= MIN_ARTICLES_FOR_PAGE)
   console.log(
     `[generate-service-pages] ${buckets.size} categories found, ${eligible.length} pass threshold (>= ${MIN_ARTICLES_FOR_PAGE})`,
   )
@@ -211,4 +209,4 @@ main().catch((err) => {
   process.exit(1)
 })
 
-export { buildServiceBuckets, renderServicePage, renderIndexPage, dailyPathToSiteLink }
+export { buildServiceBuckets, dailyPathToSiteLink, renderIndexPage, renderServicePage }
