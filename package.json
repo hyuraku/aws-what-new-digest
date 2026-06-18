@@ -33,9 +33,9 @@
     "rss-parser": "^3.13.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.16",
-    "@types/node": "^25.9.2",
-    "@vitest/coverage-v8": "^4.1.8",
+    "@biomejs/biome": "^2.5.0",
+    "@types/node": "^25.9.3",
+    "@vitest/coverage-v8": "^4.1.9",
     "@vitest/ui": "^4.0.16",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3",
