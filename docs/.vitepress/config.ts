@@ -1,5 +1,6 @@
 import { readdir, readFile, stat } from 'node:fs/promises'
 import { join } from 'node:path'
+import { withPwa } from '@vite-pwa/vitepress'
 import { type DefaultTheme, defineConfig } from 'vitepress'
 
 const BASE_PATH = '/aws-what-new-digest/'
@@ -140,86 +141,146 @@ async function generateSidebar(): Promise<DefaultTheme.SidebarItem[]> {
   return sidebar
 }
 
-export default defineConfig({
-  title: "AWS What's New Digest",
-  description: 'AI要約付きAWS最新情報アーカイブ',
-  lang: 'ja',
-  base: BASE_PATH,
+export default withPwa(
+  defineConfig({
+    title: "AWS What's New Digest",
+    description: 'AI要約付きAWS最新情報アーカイブ',
+    lang: 'ja',
+    base: BASE_PATH,
 
-  head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: `${BASE_PATH}favicon.svg` }],
-    ['meta', { name: 'theme-color', content: '#f59e0b' }],
-    ['meta', { property: 'og:type', content: 'website' }],
-    ['meta', { property: 'og:title', content: "AWS What's New Digest" }],
-    ['meta', { property: 'og:description', content: 'AI要約付きAWS最新情報アーカイブ' }],
-  ],
-
-  themeConfig: {
-    logo: '/favicon.svg',
-    nav: [
-      { text: 'ホーム', link: '/' },
-      { text: 'サービス別', link: '/services/' },
-      { text: 'AWS公式', link: 'https://aws.amazon.com/new/' },
+    head: [
+      ['link', { rel: 'icon', type: 'image/svg+xml', href: `${BASE_PATH}favicon.svg` }],
+      ['meta', { name: 'theme-color', content: '#f59e0b' }],
+      ['meta', { property: 'og:type', content: 'website' }],
+      ['meta', { property: 'og:title', content: "AWS What's New Digest" }],
+      ['meta', { property: 'og:description', content: 'AI要約付きAWS最新情報アーカイブ' }],
+      // --- PWA / iOS 追加分（base 込みの絶対パス） ---
+      ['link', { rel: 'apple-touch-icon', href: `${BASE_PATH}apple-touch-icon-180x180.png` }],
+      ['meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }],
+      ['meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' }],
+      ['meta', { name: 'apple-mobile-web-app-title', content: 'AWS Digest' }],
+      ['meta', { name: 'mobile-web-app-capable', content: 'yes' }],
     ],
 
-    sidebar: {
-      '/services/': await generateServicesSidebar(),
-      '/': await generateSidebar(),
-    },
+    themeConfig: {
+      logo: '/favicon.svg',
+      nav: [
+        { text: 'ホーム', link: '/' },
+        { text: 'サービス別', link: '/services/' },
+        { text: 'AWS公式', link: 'https://aws.amazon.com/new/' },
+      ],
 
-    socialLinks: [{ icon: 'github', link: 'https://github.com/yourusername/aws-whats-new-digest' }],
+      sidebar: {
+        '/services/': await generateServicesSidebar(),
+        '/': await generateSidebar(),
+      },
 
-    search: {
-      provider: 'local',
-      options: {
-        translations: {
-          button: {
-            buttonText: '検索',
-            buttonAriaLabel: '検索',
-          },
-          modal: {
-            noResultsText: '結果が見つかりませんでした',
-            resetButtonTitle: 'リセット',
-            footer: {
-              selectText: '選択',
-              navigateText: '移動',
-              closeText: '閉じる',
+      socialLinks: [
+        { icon: 'github', link: 'https://github.com/yourusername/aws-whats-new-digest' },
+      ],
+
+      search: {
+        provider: 'local',
+        options: {
+          translations: {
+            button: {
+              buttonText: '検索',
+              buttonAriaLabel: '検索',
+            },
+            modal: {
+              noResultsText: '結果が見つかりませんでした',
+              resetButtonTitle: 'リセット',
+              footer: {
+                selectText: '選択',
+                navigateText: '移動',
+                closeText: '閉じる',
+              },
             },
           },
         },
       },
+
+      footer: {
+        message: 'AI要約はOpenAI GPT-5-miniによって生成されています。',
+        copyright: `Copyright © ${new Date().getFullYear()}`,
+      },
+
+      outline: {
+        label: '目次',
+      },
+
+      docFooter: {
+        prev: '前のページ',
+        next: '次のページ',
+      },
+
+      lastUpdated: {
+        text: '最終更新',
+      },
     },
 
-    footer: {
-      message: 'AI要約はOpenAI GPT-5-miniによって生成されています。',
-      copyright: `Copyright © ${new Date().getFullYear()}`,
-    },
-
-    outline: {
-      label: '目次',
-    },
-
-    docFooter: {
-      prev: '前のページ',
-      next: '次のページ',
-    },
-
-    lastUpdated: {
-      text: '最終更新',
-    },
-  },
-
-  // index.mdのheroリンクを最新日付に動的に書き換え
-  async transformPageData(pageData) {
-    if (pageData.relativePath === 'index.md' && pageData.frontmatter.hero?.actions) {
-      const latestPath = await getLatestDatePath()
-      if (latestPath) {
-        for (const action of pageData.frontmatter.hero.actions) {
-          if (action.text === '最新の更新を見る') {
-            action.link = latestPath
+    // index.mdのheroリンクを最新日付に動的に書き換え
+    async transformPageData(pageData) {
+      if (pageData.relativePath === 'index.md' && pageData.frontmatter.hero?.actions) {
+        const latestPath = await getLatestDatePath()
+        if (latestPath) {
+          for (const action of pageData.frontmatter.hero.actions) {
+            if (action.text === '最新の更新を見る') {
+              action.link = latestPath
+            }
           }
         }
       }
-    }
-  },
-})
+    },
+
+    pwa: {
+      registerType: 'autoUpdate',
+      // GitHub Pages のサブパス配信に合わせて明示
+      base: BASE_PATH,
+      scope: BASE_PATH,
+      includeAssets: ['favicon.svg', 'apple-touch-icon-180x180.png'],
+      manifest: {
+        name: "AWS What's New Digest",
+        short_name: 'AWS Digest',
+        description: 'AI要約付きAWS最新情報アーカイブ',
+        lang: 'ja',
+        id: BASE_PATH,
+        start_url: BASE_PATH,
+        scope: BASE_PATH,
+        display: 'standalone',
+        theme_color: '#f59e0b',
+        background_color: '#0f172a',
+        icons: [
+          // src は base 相対（manifest 自体が base 配下に出力されるため）
+          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          {
+            src: 'pwa-maskable-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
+      },
+      workbox: {
+        // precache 対象を骨組みに絞る（png を含めないことで og/ の 12MB を巻き込まない）
+        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        // 二重の保険として OG 画像ディレクトリを明示除外
+        globIgnores: ['**/og/**'],
+        // ローカル検索インデックスが約6.75MBあるため上限を引き上げ（既定2MBだと取りこぼす）
+        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
+        // OG 画像は実行時にネットワーク優先でキャッシュ（オフライン閲覧の必須要件ではない）
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.includes('/og/'),
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'og-images',
+              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
+        ],
+      },
+    },
+  }),
+)

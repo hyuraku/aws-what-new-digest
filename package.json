@@ -11,9 +11,10 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "collect": "tsx scripts/collect.ts",
+    "docs:icons": "tsx scripts/generate-pwa-icons.ts",
     "docs:services": "tsx scripts/generate-service-pages.ts",
-    "docs:dev": "npm run docs:services && vitepress dev docs",
-    "docs:build": "npm run docs:services && vitepress build docs",
+    "docs:dev": "npm run docs:icons && npm run docs:services && vitepress dev docs",
+    "docs:build": "npm run docs:icons && npm run docs:services && vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
   "keywords": [
@@ -34,7 +35,9 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.0",
+    "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^25.9.3",
+    "@vite-pwa/vitepress": "^1.1.0",
     "@vitest/coverage-v8": "^4.1.9",
     "@vitest/ui": "^4.0.16",
     "tsx": "^4.22.4",
