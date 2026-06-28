@@ -34,9 +34,9 @@
     "rss-parser": "^3.13.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.0",
+    "@biomejs/biome": "^2.5.1",
     "@resvg/resvg-js": "^2.6.2",
-    "@types/node": "^26.0.0",
+    "@types/node": "^26.0.1",
     "@vite-pwa/vitepress": "^1.1.0",
     "@vitest/coverage-v8": "^4.1.9",
     "@vitest/ui": "^4.0.16",
