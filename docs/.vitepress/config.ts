@@ -271,10 +271,8 @@ export default withPwa(
         // 最新リンク」を丸ごと凍結してしまい、毎日中身が変わるコンテンツと相性が悪い。
         // HTML は下の runtimeCaching で実行時ネットワーク優先にして常に最新を取りに行く。
         globPatterns: ['**/*.{js,css,woff2,svg}'],
-        // 二重の保険として OG 画像ディレクトリを明示除外
-        globIgnores: ['**/og/**'],
-        // ローカル検索インデックスが約6.75MBあるため上限を引き上げ（既定2MBだと取りこぼす）
-        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
+        // OG 画像と、記事追加のたびに肥大化するローカル検索インデックスは実行時キャッシュへ回す。
+        globIgnores: ['**/og/**', '**/@localSearchIndex*.js'],
         // 静的ホスティング（GitHub Pages）では各ページの HTML が実在するため、
         // SPA フォールバックは無効化し、常に実体の HTML を取得させる。
         navigateFallback: null,
@@ -299,6 +297,17 @@ export default withPwa(
             options: {
               cacheName: 'vp-hashmap',
               expiration: { maxEntries: 4, maxAgeSeconds: 60 * 60 * 24 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          // 検索インデックスはハッシュ付きで内容不変だがサイズが大きいため、初回利用時にキャッシュする。
+          // 新しいインデックスは別URLになり、古い版は expiration により順次削除される。
+          {
+            urlPattern: ({ url }) => /\/@localSearchIndex[^/]*\.js$/.test(url.pathname),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'vp-local-search-index',
+              expiration: { maxEntries: 2, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
