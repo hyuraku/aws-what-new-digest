@@ -235,6 +235,9 @@ export default withPwa(
 
     pwa: {
       registerType: 'autoUpdate',
+      // 既定の registerSW.js 自動注入を止め、SW 登録と更新チェックを
+      // theme/index.ts 側で自前実行する（TWA 向けに update() を能動発火するため）。
+      injectRegister: false,
       // GitHub Pages のサブパス配信に合わせて明示
       base: BASE_PATH,
       scope: BASE_PATH,
@@ -263,14 +266,43 @@ export default withPwa(
         ],
       },
       workbox: {
-        // precache 対象を骨組みに絞る（png を含めないことで og/ の 12MB を巻き込まない）
-        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        // precache はアプリシェル（ハッシュ付き＝内容不変な assets 一式）に限定する。
+        // HTML はあえて含めない：precache された HTML は「その時点のトップ／サイドバー／
+        // 最新リンク」を丸ごと凍結してしまい、毎日中身が変わるコンテンツと相性が悪い。
+        // HTML は下の runtimeCaching で実行時ネットワーク優先にして常に最新を取りに行く。
+        globPatterns: ['**/*.{js,css,woff2,svg}'],
         // 二重の保険として OG 画像ディレクトリを明示除外
         globIgnores: ['**/og/**'],
         // ローカル検索インデックスが約6.75MBあるため上限を引き上げ（既定2MBだと取りこぼす）
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
-        // OG 画像は実行時にネットワーク優先でキャッシュ（オフライン閲覧の必須要件ではない）
+        // 静的ホスティング（GitHub Pages）では各ページの HTML が実在するため、
+        // SPA フォールバックは無効化し、常に実体の HTML を取得させる。
+        navigateFallback: null,
         runtimeCaching: [
+          // ページ遷移（HTML ドキュメント）＝常に最新を優先。
+          // オフライン時や 3 秒でネットワークが返らない時だけキャッシュにフォールバック。
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'html-pages',
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 64, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          // VitePress の hashmap.json は同名のまま中身が変わる（新記事チャンク名を保持）。
+          // 古い版に固定されると内部遷移で新ページを見つけられないため常に最新を優先。
+          {
+            urlPattern: ({ url }) => url.pathname.endsWith('/hashmap.json'),
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'vp-hashmap',
+              expiration: { maxEntries: 4, maxAgeSeconds: 60 * 60 * 24 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          // OG 画像は実行時にネットワーク優先でキャッシュ（オフライン閲覧の必須要件ではない）
           {
             urlPattern: ({ url }) => url.pathname.includes('/og/'),
             handler: 'StaleWhileRevalidate',
