@@ -5,66 +5,18 @@
  * （例: "Ec2" "Sagemaker Studio" "Iot Device Management"）。
  * このファイルは「タグページを作る時点」での二次正規化を担当します。
  *
- * このファイルは編集して構いません — 新しいAWSサービスや表記揺れに気付いたら
- * DISPLAY_NAME_MAP / ROLLUP_MAP / EXCLUDED_CATEGORIES を更新してください。
+ * 新しいAWSサービスや表記揺れに気付いたら scripts/lib/service-names.ts の
+ * SERVICES テーブルを更新してください（収集時・表示時の両方に反映されます）。
+ * 除外カテゴリのみこのファイルの EXCLUDED_CATEGORIES で管理します。
  */
+import { buildDisplayAliasMap } from './lib/service-names.js'
 
 /**
  * 表示名の正規化（同一サービスの表記揺れを統一）
  * 過去データの「Title Case化された名前」→「公式表記」へのマップ
+ * 定義は scripts/lib/service-names.ts に一元化されている
  */
-const DISPLAY_NAME_MAP: Record<string, string> = {
-  Ec2: 'EC2',
-  Rds: 'RDS',
-  Ecs: 'ECS',
-  Eks: 'EKS',
-  Iam: 'IAM',
-  Vpc: 'VPC',
-  Sqs: 'SQS',
-  Sns: 'SNS',
-  Kms: 'KMS',
-  Waf: 'WAF',
-  Mwaa: 'MWAA',
-  Msk: 'MSK',
-  Mq: 'MQ',
-  S3: 'S3',
-  Sagemaker: 'SageMaker',
-  Cloudwatch: 'CloudWatch',
-  Cloudfront: 'CloudFront',
-  Cloudtrail: 'CloudTrail',
-  Cloudformation: 'CloudFormation',
-  Quicksight: 'QuickSight',
-  Documentdb: 'DocumentDB',
-  Dynamodb: 'DynamoDB',
-  Opensearch: 'OpenSearch',
-  'Opensearch Service': 'OpenSearch',
-  Elasticache: 'ElastiCache',
-  Guardduty: 'GuardDuty',
-  Appsync: 'AppSync',
-  Codebuild: 'CodeBuild',
-  Codepipeline: 'CodePipeline',
-  Codecommit: 'CodeCommit',
-  Codedeploy: 'CodeDeploy',
-  Eventbridge: 'EventBridge',
-  Healthlake: 'HealthLake',
-  Healthimaging: 'HealthImaging',
-  'Iot Device Management': 'IoT Device Management',
-  'Iot Core': 'IoT Core',
-  'Identity And Access Management': 'IAM',
-  'Simple Email Service': 'SES',
-  'Nice Dcv': 'NICE DCV',
-  'Appstream 2 0': 'AppStream 2.0',
-  'Rds For Sql Server': 'RDS for SQL Server',
-  'Fsx Netapp Ontap': 'FSx for NetApp ONTAP',
-  'Fsx For Openzfs': 'FSx for OpenZFS',
-  'Govcloud Us': 'GovCloud (US)',
-  'Sagemaker Studio': 'SageMaker Studio',
-  'Sagemaker Jumpstart': 'SageMaker JumpStart',
-  'Elemental Mediaconvert': 'Elemental MediaConvert',
-  'Iam Identity Center': 'IAM Identity Center',
-  'Managed Service For Grafana': 'Managed Grafana',
-  'Managed Service For Apache Flink': 'Managed Service for Apache Flink',
-}
+const DISPLAY_NAME_MAP: Record<string, string> = buildDisplayAliasMap()
 
 /**
  * カテゴリページから除外する名前（サービスではない/価値の低いタグ）

@@ -4,15 +4,15 @@
  * 既存の docs/YYYY/MM/DD.md を全件スキャンし、カテゴリ別に集約して
  * docs/services/{slug}.md を出力する。VitePress の build 前に実行する。
  */
-import { mkdir, readdir, stat, writeFile } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
   extractOneLineSummary,
   MIN_ARTICLES_FOR_PAGE,
   type NormalizedCategory,
   normalizeCategory,
-  toSlug,
 } from './category-normalizer.js'
+import { findAllDailyMarkdowns } from './lib/daily-files.js'
 import { extractEntriesFromMarkdown, readMarkdownFile } from './markdown-generator.js'
 
 interface ServiceArticle {
@@ -31,33 +31,6 @@ interface ServiceBucket {
 
 const DOCS_DIR = 'docs'
 const SERVICES_DIR = 'docs/services'
-
-/**
- * docs配下を再帰的に走査し、すべての日次Markdownのパスを返す
- */
-async function findAllDailyMarkdowns(docsDir: string): Promise<string[]> {
-  const result: string[] = []
-  const yearDirs = await readdir(docsDir)
-  for (const year of yearDirs) {
-    if (!/^\d{4}$/.test(year)) continue
-    const yearPath = join(docsDir, year)
-    if (!(await stat(yearPath)).isDirectory()) continue
-
-    const monthDirs = await readdir(yearPath)
-    for (const month of monthDirs) {
-      if (!/^\d{2}$/.test(month)) continue
-      const monthPath = join(yearPath, month)
-      if (!(await stat(monthPath)).isDirectory()) continue
-
-      const dayFiles = await readdir(monthPath)
-      for (const day of dayFiles) {
-        if (!/^\d{2}\.md$/.test(day)) continue
-        result.push(join(monthPath, day))
-      }
-    }
-  }
-  return result
-}
 
 /**
  * 日次Markdownのファイルパス（docs/2026/04/12.md）から

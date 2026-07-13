@@ -1,5 +1,6 @@
 import { readFile, stat } from 'node:fs/promises'
 import { join } from 'node:path'
+import { normalizeLink } from './lib/links.js'
 import { generateDailyFilePath } from './markdown-generator.js'
 import type { AWSWhatsNewItem } from './types.js'
 
@@ -49,13 +50,10 @@ export function filterNewItems(
   items: AWSWhatsNewItem[],
   existingLinks: string[],
 ): AWSWhatsNewItem[] {
-  // 大文字小文字を区別しないためにすべて小文字に変換したSetを作成
-  const existingLinksLower = new Set(existingLinks.map((link) => link.toLowerCase()))
+  // 正規化（大文字小文字の同一視）は lib/links.ts の共通関数に集約
+  const existingNormalized = new Set(existingLinks.map(normalizeLink))
 
-  return items.filter((item) => {
-    const linkLower = item.link.toLowerCase()
-    return !existingLinksLower.has(linkLower)
-  })
+  return items.filter((item) => !existingNormalized.has(normalizeLink(item.link)))
 }
 
 /**

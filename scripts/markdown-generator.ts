@@ -1,7 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { format } from 'date-fns'
-import { ja } from 'date-fns/locale'
 import { escapeForMarkdown } from './summarizer.js'
 import { toJST } from './timezone.js'
 import type { MarkdownEntry } from './types.js'
