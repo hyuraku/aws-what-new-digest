@@ -1,9 +1,35 @@
+import { existsSync } from 'node:fs'
 import { readdir, readFile, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { withPwa } from '@vite-pwa/vitepress'
 import { type DefaultTheme, defineConfig } from 'vitepress'
 
 const BASE_PATH = '/aws-what-new-digest/'
+// og:image は絶対URLが必要（SNSクローラは相対パスを解決しない）
+const SITE_URL = 'https://hyuraku.github.io'
+
+/**
+ * ページに対応するOG画像ファイル名を返す
+ * 画像は docs:og（scripts/generate-og-images.ts）がビルド前に docs/public/og/ へ生成する。
+ * 生成されていないページ（トップ等）は default.png にフォールバックする。
+ */
+function ogImageFileFor(relativePath: string): string {
+  const daily = relativePath.match(/^(\d{4})\/(\d{2})\/(\d{2})\.md$/)
+  const service = relativePath.match(/^services\/([^/]+)\.md$/)
+
+  let candidate = 'default.png'
+  if (daily) {
+    candidate = `daily-${daily[1]}-${daily[2]}-${daily[3]}.png`
+  } else if (service && service[1] !== 'index') {
+    candidate = `service-${service[1]}.png`
+  }
+
+  // 画像未生成のままビルドされても壊れたog:imageを出さない
+  if (!existsSync(join(__dirname, '..', 'public', 'og', candidate))) {
+    return 'default.png'
+  }
+  return candidate
+}
 
 /**
  * 最新の日付ファイルのパスを取得
@@ -217,8 +243,8 @@ export default withPwa(
       },
     },
 
-    // index.mdのheroリンクを最新日付に動的に書き換え
     async transformPageData(pageData) {
+      // index.mdのheroリンクを最新日付に動的に書き換え
       if (pageData.relativePath === 'index.md' && pageData.frontmatter.hero?.actions) {
         const latestPath = await getLatestDatePath()
         if (latestPath) {
@@ -229,6 +255,14 @@ export default withPwa(
           }
         }
       }
+
+      // ページごとのog:imageを差し込む（日次: daily-*.png / サービス別: service-*.png）
+      const ogFile = ogImageFileFor(pageData.relativePath)
+      pageData.frontmatter.head ??= []
+      pageData.frontmatter.head.push(
+        ['meta', { property: 'og:image', content: `${SITE_URL}${BASE_PATH}og/${ogFile}` }],
+        ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+      )
     },
 
     pwa: {

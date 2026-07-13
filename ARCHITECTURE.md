@@ -101,6 +101,7 @@ aws-what-new-digest/
 │   ├── duplicate-checker.ts      # 重複チェック
 │   ├── category-normalizer.ts    # 表示用カテゴリの二次正規化
 │   ├── generate-service-pages.ts # サービス別ページ生成
+│   ├── generate-og-images.ts     # OG画像生成（docs/public/og/）
 │   ├── generate-pwa-icons.ts     # PWAアイコン生成
 │   ├── timezone.ts               # JST変換ユーティリティ
 │   └── collect.ts                # エントリポイント

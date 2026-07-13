@@ -2,15 +2,11 @@
 // Custom VitePress theme extending the default theme
 import type { Theme } from 'vitepress'
 import DefaultTheme from 'vitepress/theme'
-import ArticleCard from './ArticleCard.vue'
 import './custom.css'
 
 export default {
   extends: DefaultTheme,
-  enhanceApp({ app }) {
-    // Register global components
-    app.component('ArticleCard', ArticleCard)
-
+  enhanceApp() {
     // SW の登録と「能動的な更新チェック」はブラウザでのみ実行する。
     // （enhanceApp は SSR ビルドでも呼ばれるためガードする）
     if (typeof window !== 'undefined') {

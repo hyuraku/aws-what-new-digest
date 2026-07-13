@@ -13,8 +13,9 @@
     "collect": "tsx scripts/collect.ts",
     "docs:icons": "tsx scripts/generate-pwa-icons.ts",
     "docs:services": "tsx scripts/generate-service-pages.ts",
+    "docs:og": "tsx scripts/generate-og-images.ts",
     "docs:dev": "npm run docs:icons && npm run docs:services && vitepress dev docs",
-    "docs:build": "npm run docs:icons && npm run docs:services && vitepress build docs",
+    "docs:build": "npm run docs:icons && npm run docs:services && npm run docs:og && vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
   "keywords": [
@@ -35,11 +36,13 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.3",
+    "@fontsource/inter": "^5.2.8",
     "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^26.1.1",
     "@vite-pwa/vitepress": "^1.1.0",
     "@vitest/coverage-v8": "^4.1.10",
     "@vitest/ui": "^4.0.16",
+    "satori": "^0.26.0",
     "tsx": "^4.23.0",
     "typescript": "^6.0.3",
     "vitepress": "^1.6.4",

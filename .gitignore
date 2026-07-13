@@ -40,3 +40,6 @@ pnpm-debug.log*
 # Temporary files
 *.tmp
 *.temp
+
+# Python virtual environment (residue guard)
+.venv/
