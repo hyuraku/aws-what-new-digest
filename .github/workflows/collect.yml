@@ -6,6 +6,11 @@ on:
     - cron: '0 1 * * *'
   workflow_dispatch:
 
+# schedule と workflow_dispatch の同時実行を防ぐ（進行中の実行はキャンセルしない）
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
 permissions:
   contents: write
   pull-requests: write
@@ -47,6 +52,18 @@ jobs:
           NODE_ENV: production
           TZ: Asia/Tokyo
         run: npm run collect
+
+      # 品質ゲート: 生成された Markdown を main に入れる前に検証する。
+      # 自動マージ（下の gh pr merge）は ci.yml を待たないため、ここで同等の
+      # チェックを実行しないと壊れた生成物が品質検証なしで main に入ってしまう。
+      # vitest の実データ smoke テストが全日次 Markdown のパース可能性を、
+      # docs:build が VitePress ビルドの成立を検証する。失敗時はジョブが
+      # ここで停止し、main には何も入らない（翌日の実行で再試行される）。
+      - name: Quality gate (validate generated content)
+        run: |
+          npm run typecheck
+          npx vitest run
+          npm run docs:build
 
       - name: Check for changes
         id: check_changes
@@ -94,6 +111,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr merge "${{ steps.create_pr.outputs.pr_url }}" --squash --delete-branch
 
+      # repository_dispatch はこのジョブから deploy.yml を起動する唯一の経路。
+      # GITHUB_TOKEN で行った push（上の squash merge）は push トリガの
+      # ワークフローを起動しない（GitHub の再帰実行防止）ため、deploy.yml の
+      # push トリガには乗らず、二重デプロイにはならない。push トリガは
+      # 人間が docs/** を直接変更したときの補完として機能する。
       - name: Trigger Deploy Workflow
         if: steps.check_changes.outputs.has_changes == 'true'
         env:
