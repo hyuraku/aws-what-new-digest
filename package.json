@@ -24,7 +24,7 @@
     "ai",
     "summary"
   ],
-  "author": "",
+  "author": "hyuraku",
   "license": "MIT",
   "dependencies": {
     "@date-fns/tz": "^1.5.0",

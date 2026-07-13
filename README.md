@@ -57,7 +57,7 @@ npm run docs:build
 
 ## Architecture
 
-詳細は [ARCHITECTURE.md](./ARCHITECURE.md) を参照。
+詳細は [ARCHITECTURE.md](./ARCHITECTURE.md) を参照。
 
 ## License
 

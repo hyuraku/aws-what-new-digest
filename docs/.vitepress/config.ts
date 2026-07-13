@@ -175,9 +175,7 @@ export default withPwa(
         '/': await generateSidebar(),
       },
 
-      socialLinks: [
-        { icon: 'github', link: 'https://github.com/yourusername/aws-whats-new-digest' },
-      ],
+      socialLinks: [{ icon: 'github', link: 'https://github.com/hyuraku/aws-what-new-digest' }],
 
       search: {
         provider: 'local',
@@ -201,7 +199,7 @@ export default withPwa(
       },
 
       footer: {
-        message: 'AI要約はOpenAI GPT-5-miniによって生成されています。',
+        message: 'AI要約はOpenAI APIによって生成されています。',
         copyright: `Copyright © ${new Date().getFullYear()}`,
       },
 
