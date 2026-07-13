@@ -1,6 +1,9 @@
 import OpenAI from 'openai'
 import type { AWSWhatsNewItem, SummaryResult } from './types.js'
 
+/** 要約に使うOpenAIモデルのデフォルト（環境変数 AI_MODEL で上書き可能） */
+export const DEFAULT_AI_MODEL = 'gpt-5-mini'
+
 const SYSTEM_PROMPT = `あなたはAWSの技術エキスパートです。AWS What's Newの記事を日本語で分かりやすく要約・解説してください。
 
 以下の形式でJSON形式で出力してください:
@@ -163,13 +166,13 @@ export function parseSummaryResponse(content: string): SummaryResult {
  * 単一の記事を要約
  * @param client - OpenAIクライアント
  * @param item - AWS What's New記事
- * @param model - 使用するモデル（デフォルト: gpt-5-mini）
+ * @param model - 使用するモデル（デフォルト: DEFAULT_AI_MODEL）
  * @returns SummaryResult
  */
 export async function summarizeItem(
   client: OpenAI,
   item: AWSWhatsNewItem,
-  model = 'gpt-5-mini',
+  model = DEFAULT_AI_MODEL,
 ): Promise<SummaryResult> {
   const userPrompt = buildSummaryPrompt(item)
 
@@ -202,7 +205,7 @@ export async function summarizeItem(
  */
 export async function summarizeItems(
   items: AWSWhatsNewItem[],
-  model = 'gpt-5-mini',
+  model = DEFAULT_AI_MODEL,
   concurrency = 3,
 ): Promise<Map<string, SummaryResult>> {
   const client = createOpenAIClient()

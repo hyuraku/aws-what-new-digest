@@ -39,8 +39,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Test
-        run: npx vitest run
+      # カバレッジ付きで実行し、vitest.config.ts の閾値（後退防止ライン）を守らせる
+      - name: Test (with coverage thresholds)
+        run: npm run test:coverage
 
       - name: Build docs (VitePress)
         run: npm run docs:build
