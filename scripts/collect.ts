@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { format } from 'date-fns'
 import { collectRecentItems } from './collector.js'
 import { getNewItemsOnly } from './duplicate-checker.js'
+import { normalizeLink } from './lib/links.js'
 import {
   appendToMarkdownFile,
   dailyFileExists,
@@ -129,9 +130,9 @@ async function main(): Promise<void> {
 
       if (existingContent) {
         const existingEntries = extractEntriesFromMarkdown(existingContent)
-        // 重複を除去（リンクで比較）
-        const existingLinks = new Set(existingEntries.map((e) => e.link.toLowerCase()))
-        const uniqueNewEntries = entries.filter((e) => !existingLinks.has(e.link.toLowerCase()))
+        // 重複を除去（リンクで比較。正規化は duplicate-checker と共通の normalizeLink）
+        const existingLinks = new Set(existingEntries.map((e) => normalizeLink(e.link)))
+        const uniqueNewEntries = entries.filter((e) => !existingLinks.has(normalizeLink(e.link)))
 
         if (uniqueNewEntries.length > 0) {
           await appendToMarkdownFile(date, uniqueNewEntries, existingEntries)

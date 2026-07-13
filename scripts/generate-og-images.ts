@@ -12,11 +12,13 @@
  * これらは VitePress ビルド時に static asset としてコピーされ
  * config.ts の transformPageData が og:image メタタグを差し込む。
  */
-import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Resvg } from '@resvg/resvg-js'
 import satori from 'satori'
+import { isUpToDate } from './lib/build-cache.js'
+import { findAllDailyMarkdowns } from './lib/daily-files.js'
 import { extractEntriesFromMarkdown, readMarkdownFile } from './markdown-generator.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -162,40 +164,6 @@ async function renderPng(input: OgInput, fonts: Awaited<ReturnType<typeof loadFo
   return png
 }
 
-/**
- * 出力PNGがソース（.md）より新しいなら true（再生成スキップ可）
- */
-async function isUpToDate(outPath: string, srcPath?: string): Promise<boolean> {
-  try {
-    const outStat = await stat(outPath)
-    if (!srcPath) return true // sourceが無いなら存在チェックのみ
-    const srcStat = await stat(srcPath)
-    return outStat.mtimeMs >= srcStat.mtimeMs
-  } catch {
-    return false
-  }
-}
-
-async function findAllDailyMarkdowns(): Promise<string[]> {
-  const result: string[] = []
-  const yearDirs = await readdir(DOCS_DIR)
-  for (const year of yearDirs) {
-    if (!/^\d{4}$/.test(year)) continue
-    const yearPath = join(DOCS_DIR, year)
-    if (!(await stat(yearPath)).isDirectory()) continue
-    for (const month of await readdir(yearPath)) {
-      if (!/^\d{2}$/.test(month)) continue
-      const monthPath = join(yearPath, month)
-      if (!(await stat(monthPath)).isDirectory()) continue
-      for (const day of await readdir(monthPath)) {
-        if (!/^\d{2}\.md$/.test(day)) continue
-        result.push(join(monthPath, day))
-      }
-    }
-  }
-  return result
-}
-
 async function main() {
   console.log('[generate-og-images] starting...')
   await mkdir(OG_DIR, { recursive: true })
@@ -222,7 +190,7 @@ async function main() {
   }
 
   // 2. 日次ページ
-  const dailies = await findAllDailyMarkdowns()
+  const dailies = await findAllDailyMarkdowns(DOCS_DIR)
   for (const file of dailies) {
     const m = file.match(/(\d{4})\/(\d{2})\/(\d{2})\.md$/)
     if (!m) continue

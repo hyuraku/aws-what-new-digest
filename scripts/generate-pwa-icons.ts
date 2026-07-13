@@ -13,10 +13,11 @@
  * これらは VitePress ビルド時に static asset としてコピーされ、
  * config.ts の pwa.manifest / head から参照される。
  */
-import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Resvg } from '@resvg/resvg-js'
+import { isUpToDate } from './lib/build-cache.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -37,18 +38,6 @@ const ICONS: IconSpec[] = [
   { name: 'pwa-maskable-512x512.png', size: 512, background: BG },
   { name: 'apple-touch-icon-180x180.png', size: 180, background: BG },
 ]
-
-/**
- * 出力PNGがソース（favicon.svg）より新しいなら true（再生成スキップ可）
- */
-async function isUpToDate(outPath: string, srcPath: string): Promise<boolean> {
-  try {
-    const [out, src] = await Promise.all([stat(outPath), stat(srcPath)])
-    return out.mtimeMs >= src.mtimeMs
-  } catch {
-    return false
-  }
-}
 
 async function main() {
   console.log('[generate-pwa-icons] starting...')
