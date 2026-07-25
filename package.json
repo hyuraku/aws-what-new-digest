@@ -31,7 +31,7 @@
     "@date-fns/tz": "^1.5.0",
     "date-fns": "^4.4.0",
     "dotenv": "^17.4.2",
-    "openai": "^6.46.0",
+    "openai": "^6.48.0",
     "rss-parser": "^3.13.0"
   },
   "devDependencies": {
