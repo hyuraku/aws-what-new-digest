@@ -41,7 +41,7 @@
     "@types/node": "^26.4.1",
     "@vite-pwa/vitepress": "^1.1.0",
     "@vitest/coverage-v8": "^4.1.11",
-    "@vitest/ui": "^4.0.16",
+    "@vitest/ui": "^5.0.0",
     "satori": "^0.33.4",
     "tsx": "^4.23.13",
     "typescript": "^6.0.3",
