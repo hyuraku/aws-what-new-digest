@@ -35,7 +35,7 @@ AWS What's New RSSフィードから最新情報を自動収集し、AI要約を
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                AI Summarizer (summarizer.ts)                 │
-│  - モデル: 環境変数 AI_MODEL で指定（デフォルト gpt-5-mini） │
+│  - モデル: 環境変数 AI_MODEL で指定（デフォルト gpt-6-luna） │
 │  - 出力: 概要、詳細、影響範囲、技術的注意点、参考リンク      │
 │  - セキュリティ: APIキー検証、HTMLサニタイゼーション         │
 └─────────────────────────────────────────────────────────────┘
@@ -70,7 +70,7 @@ AWS What's New RSSフィードから最新情報を自動収集し、AI要約を
 | Language | TypeScript |
 | Runtime | Node.js 24.x |
 | Static Site | VitePress 1.x + @vite-pwa/vitepress |
-| AI | OpenAI API（モデルは環境変数 `AI_MODEL` で指定、デフォルト gpt-5-mini） |
+| AI | OpenAI API（モデルは環境変数 `AI_MODEL` で指定、デフォルト gpt-6-luna） |
 | Test | Vitest 4.x |
 | Linter/Formatter | Biome |
 | CI/CD | GitHub Actions |
