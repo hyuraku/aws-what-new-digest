@@ -2,7 +2,7 @@ import OpenAI from 'openai'
 import type { AWSWhatsNewItem, SummaryResult } from './types.js'
 
 /** 要約に使うOpenAIモデルのデフォルト（環境変数 AI_MODEL で上書き可能） */
-export const DEFAULT_AI_MODEL = 'gpt-5-mini'
+export const DEFAULT_AI_MODEL = 'gpt-6-luna'
 
 const SYSTEM_PROMPT = `あなたはAWSの技術エキスパートです。AWS What's Newの記事を日本語で分かりやすく要約・解説してください。
 
