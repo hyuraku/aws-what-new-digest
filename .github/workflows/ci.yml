@@ -46,35 +46,42 @@ jobs:
       - name: Build docs (VitePress)
         run: npm run docs:build
 
-  # Dependabot の PR だけを対象に、quality 通過後に条件付きで自動マージする。
-  # ブランチ保護を使わず needs で順序を保証しているので、毎日の collect.yml の自動マージには影響しない。
+  # Dependabot の PR を、上の CI ジョブがすべて通ったあとに条件付きでマージする。
+  # needs で CI の成功を前提にしているので、ブランチ保護（無料プランの private repo では使えない）に頼らない。
+  # ブランチ保護を使わないので、毎日の collect.yml の自動マージにも影響しない。
+  # 自動マージする条件:
+  #   - patch: version update / security update のどちらも
+  #   - minor: version update のグループ（minor-and-patch）だけ
+  # major と、minor を含む security update は人がレビューする。
   dependabot-auto-merge:
     name: Dependabot auto-merge
-    needs: quality
+    needs: [quality]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
     permissions:
       contents: write
       pull-requests: write
+      actions: write # deploy.yml を workflow_dispatch で起動するため
     steps:
       - name: Fetch Dependabot metadata
         id: metadata
-        uses: dependabot/fetch-metadata@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
 
-      # 自動マージ対象（方針: patch は全依存 / dev 依存は minor も）:
-      #   1. dev-dependencies グループの PR（設定上 dev の minor+patch のみ含む）
-      #   2. あらゆる依存の patch 更新
-      #   3. dev 依存（direct:development）の minor 更新
-      # 本番依存の minor/major と dev 依存の major はこの条件に該当せず、人間レビューに回る。
       - name: Squash-merge eligible updates
-        if: >
-          steps.metadata.outputs.dependency-group == 'dev-dependencies' ||
+        id: merge
+        if: >-
           steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
-          (steps.metadata.outputs.dependency-type == 'direct:development' &&
+          (steps.metadata.outputs.dependency-group == 'minor-and-patch' &&
            steps.metadata.outputs.update-type == 'version-update:semver-minor')
         run: gh pr merge --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # GITHUB_TOKEN によるマージでは push トリガーの workflow が起動しないため、
+      # 依存パッケージを更新したときはデプロイを明示的に起動する
+      - name: Trigger deploy
+        if: steps.merge.outcome == 'success' && steps.metadata.outputs.package-ecosystem == 'npm_and_yarn'
+        run: gh workflow run deploy.yml --ref main --repo "$GITHUB_REPOSITORY"
+        env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
